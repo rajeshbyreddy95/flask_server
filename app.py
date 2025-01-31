@@ -50,19 +50,26 @@ def download_video():
         data = request.json
         video_url = data.get("url")
         selected_format = data.get("format")
+        cookies = data.get("cookies")  # Directly accept cookies as part of the request
 
         if not video_url:
             return jsonify({"error": "No URL provided"}), 400
         if not selected_format:
             return jsonify({"error": "No format selected"}), 400
 
-        start_time = time.time()  # Track start time
+        # Ensure cookies are passed in the correct format
+        if not cookies:
+            return jsonify({"error": "Cookies are required for downloading"}), 400
 
         # Set yt-dlp options for the selected format
         ydl_opts = {
             "format": selected_format,
             "outtmpl": f"{DOWNLOAD_FOLDER}/%(title)s.%(ext)s",
+            "cookiejar": None,  # No cookie file, we are passing cookies directly
+            "cookies": cookies  # Pass cookies directly
         }
+
+        start_time = time.time()  # Track start time
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=True)
